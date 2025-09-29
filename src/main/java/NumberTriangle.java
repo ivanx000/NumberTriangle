@@ -1,4 +1,5 @@
 import java.io.*;
+import java.util.*;
 
 /**
  * This is the provided NumberTriangle class to be used in this coding task.
@@ -104,31 +105,38 @@ public class NumberTriangle {
      * @throws IOException may naturally occur if an issue reading the file occurs
      */
     public static NumberTriangle loadTriangle(String fname) throws IOException {
-        // open the file and get a BufferedReader object whose methods
-        // are more convenient to work with when reading the file contents.
         InputStream inputStream = NumberTriangle.class.getClassLoader().getResourceAsStream(fname);
+        if (inputStream == null) {
+            throw new FileNotFoundException("Resource not found: " + fname);
+        }
         BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
 
+        List<List<NumberTriangle>> levels = new ArrayList<>();
+        String line;
+        while ((line = br.readLine()) != null) {
+            line = line.trim();
+            if (line.isEmpty()) continue;
 
-        // TODO define any variables that you want to use to store things
-
-        // will need to return the top of the NumberTriangle,
-        // so might want a variable for that.
-        NumberTriangle top = null;
-
-        String line = br.readLine();
-        while (line != null) {
-
-            // remove when done; this line is included so running starter code prints the contents of the file
-            System.out.println(line);
-
-            // TODO process the line
-
-            //read the next line
-            line = br.readLine();
+            String[] tokens = line.split("\\s+");
+            List<NumberTriangle> row = new ArrayList<>();
+            for (String token : tokens) {
+                row.add(new NumberTriangle(Integer.parseInt(token)));
+            }
+            levels.add(row);
         }
         br.close();
-        return top;
+
+        // connect rows
+        for (int i = 0; i < levels.size() - 1; i++) {
+            List<NumberTriangle> current = levels.get(i);
+            List<NumberTriangle> next = levels.get(i + 1);
+            for (int j = 0; j < current.size(); j++) {
+                current.get(j).setLeft(next.get(j));
+                current.get(j).setRight(next.get(j + 1));
+            }
+        }
+
+        return levels.get(0).get(0); // top of triangle
     }
 
     public static void main(String[] args) throws IOException {
